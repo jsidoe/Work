@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="JP TRIP" />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="manifest" href="manifest.json" />
+  <title>JP TRIP — 일본 여행 플래너</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --text: #111111;
+      --sub: #6b7280;
+      --border: #e5e7eb;
+      --accent: #111111;
+      --accent-fg: #ffffff;
+      --danger: #dc2626;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .trip-meta {
+      font-size: 12px;
+      color: var(--sub);
+      margin-top: 2px;
+    }
+
+    .icon-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Container */
+    main {
+      max-width: 540px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* Cards & Controls */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .row-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: var(--accent-fg);
+      border: none;
+      border-radius: 12px;
+      padding: 13px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-sm.dark {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+      margin-top: 6px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--sub);
+    }
+
+    /* Day Selector Chips */
+    .day-chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .day-chips::-webkit-scrollbar { display: none; }
+
+    .chip {
+      flex: 0 0 auto;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--sub);
+      cursor: pointer;
+    }
+
+    .chip.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* Timeline Items */
+    .timeline-item {
+      display: flex;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .time-col {
+      min-width: 52px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      padding-top: 2px;
+    }
+
+    .content-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+
+    .tabelog-score {
+      background: #111;
+      color: #fff;
+      border-color: #111;
+    }
+
+    .item-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      word-break: keep-all;
+    }
+
+    .item-memo {
+      font-size: 13px;
+      color: var(--sub);
+      margin: 0 0 10px 0;
+      white-space: pre-wrap;
+    }
+
+    .link-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 4px;
+      align-self: flex-start;
+    }
+
+    /* Wishlist */
+    .wish-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 8px;
+    }
+
+    .wish-item.done .wish-text {
+      text-decoration: line-through;
+      color: #9ca3af;
+    }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      margin: 2px 0 0 0;
+      accent-color: #111;
+    }
+
+    /* Expense Summary */
+    .summary-box {
+      background: #111;
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+
+    .summary-label {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .summary-jpy {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 4px 0;
+      letter-spacing: -0.02em;
+    }
+
+    .summary-krw {
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
+    /* Bottom Navigation */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding-bottom: env(safe-area-inset-bottom);
+      z-index: 30;
+    }
+
+    .nav-btn {
+      flex: 1;
+      border: none;
+      background: none;
+      padding: 12px 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #9ca3af;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-btn.active {
+      color: var(--text);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 50;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background: #fff;
+      width: 100%;
+      max-width: 540px;
+      border-radius: 22px 22px 0 0;
+      padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--sub);
+      font-size: 13px;
+      padding: 36px 16px;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <div class="brand" id="headerTitle">일본 여행</div>
+      <div class="trip-meta" id="headerDates">날짜를 설정해주세요</div>
+    </div>
+    <button class="icon-btn" onclick="openSettings()">여행 설정</button>
+  </header>
+
+  <main>
+    <!-- 1. 일정 계획 탭 -->
+    <section id="tab-plan" class="section active">
+      <div class="day-chips" id="dayChips"></div>
+      <div id="timelineList"></div>
+      <button class="btn-primary" style="margin-top: 8px;" onclick="openPlanModal()">+ 일정 / 맛집 추가</button>
+    </section>
+
+    <!-- 2. 위시리스트 탭 -->
+    <section id="tab-wish" class="section">
+      <div class="card">
+        <div class="row-between" style="margin-bottom: 4px;">
+          <label style="margin:0;">새 위시리스트 메모</label>
+          <select id="wishCategory" style="width:auto; margin:0; padding:4px 8px; font-size:12px;">
+            <option value="쇼핑">쇼핑</option>
+            <option value="맛집/카페">맛집/카페</option>
+            <option value="관광/장소">관광/장소</option>
+            <option value="준비물">준비물</option>
+          </select>
+        </div>
+        <input type="text" id="wishTitle" placeholder="예: 돈키호테 휴족시간, 파르코 매장 방문" />
+        <textarea id="wishMemo" rows="2" placeholder="상세 메모 (가격, 층수, 옵션 등)"></textarea>
+        <button class="btn-primary" onclick="addWish()">위시리스트 추가</button>
+      </div>
+      <div id="wishList"></div>
+    </section>
+
+    <!-- 3. 경비/가계부 탭 -->
+    <section id="tab-budget" class="section">
+      <div class="summary-box">
+        <div class="row-between">
+          <span class="summary-label">총 누적 지출</span>
+          <span class="summary-label" id="rateDisplay">기준 환율: 100엔 = 900원</span>
+        </div>
+        <div class="summary-jpy" id="totalJpy">¥0</div>
+        <div class="summary-krw" id="totalKrw">약 0원</div>
+      </div>
+
+      <div class="card">
+        <div class="row-between" style="gap:8px;">
+          <div style="flex:1;">
+            <label>날짜</label>
+            <select id="expDay"></select>
+          </div>
+          <div style="flex:1;">
+            <label>카테고리</label>
+            <select id="expCat">
+              <option value="식비">식비</option>
+              <option value="교통">교통</option>
+              <option value="쇼핑">쇼핑</option>
+              <option value="숙박/입장권">숙박/입장권</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+        </div>
+        <div class="row-between" style="gap:8px;">
+          <div style="flex:1.4;">
+            <label>내용</label>
+            <input type="text" id="expTitle" placeholder="예: 스시로 저녁, 스이카 충전" />
+          </div>
+          <div style="flex:1;">
+            <label>금액 (엔 ¥)</label>
+            <input type="number" id="expAmount" inputmode="numeric" placeholder="1500" />
+          </div>
+        </div>
+        <button class="btn-primary" onclick="addExpense()">지출 기록하기</button>
+      </div>
+
+      <div id="expenseList"></div>
+    </section>
+  </main>
+
+  <!-- 하단 탭바 -->
+  <nav>
+    <button class="nav-btn active" onclick="switchTab('plan', this)">
+      <span>🗓️</span><span>일정 계획</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('wish', this)">
+      <span>📌</span><span>위시리스트</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('budget', this)">
+      <span>💴</span><span>경비·가계부</span>
+    </button>
+  </nav>
+
+  <!-- 여행 설정 모달 -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="row-between" style="margin-bottom: 14px;">
+        <strong style="font-size:17px;">여행 기본 설정</strong>
+        <button class="icon-btn" onclick="closeModal('settingsModal')">닫기</button>
+      </div>
+      <label>여행 제목 / 도시</label>
+      <input type="text" id="setTripName" placeholder="예: 삿포로 3박 4일" />
+
+      <div class="row-between" style="gap:8px;">
+        <div style="flex:1;">
+          <label>시작일</label>
+          <input type="date" id="setStartDate" />
+        </div>
+        <div style="flex:1;">
+          <label>종료일</label>
+          <input type="date" id="setEndDate" />
+        </div>
+      </div>
+
+      <label>기준 환율 (100엔당 원화)</label>
+      <input type="number" id="setRate" inputmode="decimal" placeholder="900" />
+
+      <button class="btn-primary" onclick="saveSettings()">설정 저장</button>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="btn-sm" style="flex:1; justify-content:center;" onclick="exportData()">데이터 백업(복사)</button>
+        <button class="btn-sm" style="flex:1; justify-content:center;" onclick="importData()">데이터 복원</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 일정 & 맛집 추가 모달 -->
+  <div class="modal-backdrop" id="planModal">
+    <div class="modal-sheet">
+      <div class="row-between" style="margin-bottom: 14px;">
+        <strong style="font-size:17px;">일정 / 음식점 추가</strong>
+        <button class="icon-btn" onclick="closeModal('planModal')">닫기</button>
+      </div>
+
+      <div class="row-between" style="gap:8px;">
+        <div style="flex:1;">
+          <label>시간</label>
+          <input type="time" id="planTime" value="12:00" />
+        </div>
+        <div style="flex:1;">
+          <label>구분</label>
+          <select id="planType" onchange="toggleRestaurantFields()">
+            <option value="restaurant">음식점 / 카페</option>
+            <option value="spot">관광 / 쇼핑 / 이동</option>
+          </select>
+        </div>
+      </div>
+
+      <label>장소 / 식당 이름</label>
+      <input type="text" id="planTitle" placeholder="예: 스프카레 가라쿠, 오타루 운하" />
+
+      <div id="restaurantFields">
+        <div class="row-between" style="gap:8px;">
+          <div style="flex:1;">
+            <label>타베로그 평점 (선택)</label>
+            <input type="text" id="planScore" inputmode="decimal" placeholder="예: 3.62" />
+          </div>
+          <div style="flex:1.5;">
+            <label>타베로그 / 구글맵 링크 (선택)</label>
+            <input type="url" id="planUrl" placeholder="https://tabelog.com/..." />
+          </div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <button type="button" class="btn-sm" onclick="quickSearch('tabelog')">↗ 타베로그에서 검색해 평점 확인</button>
+          <button type="button" class="btn-sm" onclick="quickSearch('gmap')">↗ 구글맵에서 위치 확인</button>
+        </div>
+      </div>
+
+      <label>메모 (예약 여부, 대표 메뉴, 이동 팁)</label>
+      <textarea id="planMemo" rows="2" placeholder="예: 오픈 30분 전 웨이팅 필수, 치킨 야채 스프카레"></textarea>
+
+      <button class="btn-primary" onclick="addPlan()">일정에 저장</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'jp_trip_pwa_v1';
+
+    let state = {
+      tripName: '일본 여행',
+      startDate: new Date().toISOString().slice(0, 10),
+      endDate: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
+      rate: 900,
+      selectedDayIndex: 0,
+      plans: [],      // { id, dayIndex, time, type, title, score, url, memo }
+      wishes: [],     // { id, category, title, memo, done }
+      expenses: []    // { id, dayIndex, category, title, amount }
+    };
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          state = { ...state, ...JSON.parse(saved) };
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function getDaysArray() {
+      const start = new Date(state.startDate);
+      const end = new Date(state.endDate);
+      if (isNaN(start) || isNaN(end) || end < start) return [{ index: 0, label: 'Day 1', dateStr: state.startDate }];
+      const days = [];
+      let cur = new Date(start);
+      let idx = 0;
+      while (cur <= end && idx < 30) {
+        const mm = String(cur.getMonth() + 1).padStart(2, '0');
+        const dd = String(cur.getDate()).padStart(2, '0');
+        const week = ['일', '월', '화', '수', '목', '금', '토'][cur.getDay()];
+        days.push({
+          index: idx,
+          label: `Day ${idx + 1}`,
+          dateStr: `${mm}/${dd}(${week})`
+        });
+        cur.setDate(cur.getDate() + 1);
+        idx++;
+      }
+      return days;
+    }
+
+    function renderAll() {
+      const days = getDaysArray();
+      if (state.selectedDayIndex >= days.length) state.selectedDayIndex = 0;
+
+      document.getElementById('headerTitle').textContent = state.tripName || '일본 여행';
+      document.getElementById('headerDates').textContent = `${state.startDate} ~ ${state.endDate} (${days.length}일)`;
+
+      // Day Chips
+      const chipsEl = document.getElementById('dayChips');
+      chipsEl.innerHTML = days.map(d => `
+        <button class="chip ${d.index === state.selectedDayIndex ? 'active' : ''}" onclick="selectDay(${d.index})">
+          ${d.label} · ${d.dateStr}
+        </button>
+      `).join('');
+
+      // Timeline
+      const dayPlans = state.plans
+        .filter(p => p.dayIndex === state.selectedDayIndex)
+        .sort((a, b) => a.time.localeCompare(b.time));
+
+      const timelineEl = document.getElementById('timelineList');
+      if (dayPlans.length === 0) {
+        timelineEl.innerHTML = `<div class="empty-state">등록된 일정이 없습니다.<br>아래 버튼을 눌러 시간별 일정이나 타베로그 맛집을 추가하세요.</div>`;
+      } else {
+        timelineEl.innerHTML = dayPlans.map(p => {
+          const q = encodeURIComponent(p.title);
+          const gmapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+          const tabelogSearchUrl = `https://tabelog.com/rstLst/?vs=1&sa=&sk=${q}`;
+          const customLink = p.url ? `<a class="btn-sm dark" href="${p.url}" target="_blank" rel="noopener">저장된 링크 ↗</a>` : '';
+          const scoreBadge = p.score ? `<span class="badge tabelog-score">★ 타베로그 ${p.score}</span>` : '';
+          const typeBadge = `<span class="badge">${p.type === 'restaurant' ? '🍽️ 맛집/카페' : '📍 일정'}</span>`;
+
+          return `
+            <div class="timeline-item">
+              <div class="time-col">${p.time}</div>
+              <div class="content-col">
+                <div>${typeBadge} ${scoreBadge}</div>
+                <div class="item-title">${escapeHtml(p.title)}</div>
+                ${p.memo ? `<div class="item-memo">${escapeHtml(p.memo)}</div>` : ''}
+                <div class="link-group">
+                  <a class="btn-sm" href="${gmapSearchUrl}" target="_blank" rel="noopener">구글맵 보기</a>
+                  ${p.type === 'restaurant' ? `<a class="btn-sm" href="${tabelogSearchUrl}" target="_blank" rel="noopener">타베로그 검색</a>` : ''}
+                  ${customLink}
+                </div>
+              </div>
+              <button class="del-btn" onclick="deletePlan('${p.id}')">✕</button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Wishlist
+      const wishEl = document.getElementById('wishList');
+      if (state.wishes.length === 0) {
+        wishEl.innerHTML = `<div class="empty-state">쇼핑 목록이나 가고 싶은 장소를 메모해두세요.</div>`;
+      } else {
+        wishEl.innerHTML = state.wishes.map(w => `
+          <div class="wish-item ${w.done ? 'done' : ''}">
+            <input type="checkbox" class="checkbox" ${w.done ? 'checked' : ''} onchange="toggleWish('${w.id}')" />
+            <div style="flex:1;">
+              <span class="badge">${escapeHtml(w.category)}</span>
+              <div class="wish-text" style="font-weight:700; font-size:15px;">${escapeHtml(w.title)}</div>
+              ${w.memo ? `<div style="font-size:13px; color:var(--sub); margin-top:4px;">${escapeHtml(w.memo)}</div>` : ''}
+            </div>
+            <button class="del-btn" onclick="deleteWish('${w.id}')">✕</button>
+          </div>
+        `).join('');
+      }
+
+      // Expense Day Options & List
+      const expDayEl = document.getElementById('expDay');
+      expDayEl.innerHTML = days.map(d => `<option value="${d.index}">${d.label} (${d.dateStr})</option>`).join('');
+
+      const totalJpy = state.expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+      const totalKrw = Math.round((totalJpy / 100) * Number(state.rate || 900));
+      document.getElementById('rateDisplay').textContent = `기준 환율: 100엔 = ${state.rate}원`;
+      document.getElementById('totalJpy').textContent = `¥${totalJpy.toLocaleString()}`;
+      document.getElementById('totalKrw').textContent = `약 ${totalKrw.toLocaleString()}원`;
+
+      const expListEl = document.getElementById('expenseList');
+      if (state.expenses.length === 0) {
+        expListEl.innerHTML = `<div class="empty-state">아직 기록된 지출 내역이 없습니다.</div>`;
+      } else {
+        expListEl.innerHTML = [...state.expenses].reverse().map(e => {
+          const dayLabel = days[e.dayIndex] ? days[e.dayIndex].label : 'Day 1';
+          const krw = Math.round((Number(e.amount) / 100) * Number(state.rate || 900));
+          return `
+            <div class="card row-between" style="padding:12px 14px; margin-bottom:8px;">
+              <div>
+                <span class="badge">${dayLabel} · ${escapeHtml(e.category)}</span>
+                <div style="font-weight:700; font-size:15px;">${escapeHtml(e.title)}</div>
+              </div>
+              <div style="text-align:right; display:flex; align-items:center; gap:10px;">
+                <div>
+                  <div style="font-weight:800; font-size:15px;">¥${Number(e.amount).toLocaleString()}</div>
+                  <div style="font-size:12px; color:var(--sub);">약 ${krw.toLocaleString()}원</div>
+                </div>
+                <button class="del-btn" onclick="deleteExpense('${e.id}')">✕</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function selectDay(idx) {
+      state.selectedDayIndex = idx;
+      saveState();
+      renderAll();
+    }
+
+    // Settings Modal
+    function openSettings() {
+      document.getElementById('setTripName').value = state.tripName;
+      document.getElementById('setStartDate').value = state.startDate;
+      document.getElementById('setEndDate').value = state.endDate;
+      document.getElementById('setRate').value = state.rate;
+      document.getElementById('settingsModal').classList.add('open');
+    }
+
+    function saveSettings() {
+      state.tripName = document.getElementById('setTripName').value.trim() || '일본 여행';
+      state.startDate = document.getElementById('setStartDate').value || state.startDate;
+      state.endDate = document.getElementById('setEndDate').value || state.endDate;
+      state.rate = Number(document.getElementById('setRate').value) || 900;
+      saveState();
+      closeModal('settingsModal');
+      renderAll();
+    }
+
+    // Plan Modal
+    function openPlanModal() {
+      document.getElementById('planTitle').value = '';
+      document.getElementById('planScore').value = '';
+      document.getElementById('planUrl').value = '';
+      document.getElementById('planMemo').value = '';
+      document.getElementById('planModal').classList.add('open');
+    }
+
+    function toggleRestaurantFields() {
+      const isRest = document.getElementById('planType').value === 'restaurant';
+      document.getElementById('restaurantFields').style.display = isRest ? 'block' : 'none';
+    }
+
+    function quickSearch(target) {
+      const name = document.getElementById('planTitle').value.trim();
+      if (!name) {
+        alert('먼저 식당이나 장소 이름을 입력해주세요.');
+        return;
+      }
+      const q = encodeURIComponent(name);
+      const url = target === 'tabelog'
+        ? `https://tabelog.com/rstLst/?vs=1&sa=&sk=${q}`
+        : `https://www.google.com/maps/search/?api=1&query=${q}`;
+      window.open(url, '_blank');
+    }
+
+    function addPlan() {
+      const title = document.getElementById('planTitle').value.trim();
+      if (!title) return alert('장소 또는 식당 이름을 입력해주세요.');
+
+      state.plans.push({
+        id: Date.now().toString(),
+        dayIndex: state.selectedDayIndex,
+        time: document.getElementById('planTime').value || '12:00',
+        type: document.getElementById('planType').value,
+        title,
+        score: document.getElementById('planScore').value.trim(),
+        url: document.getElementById('planUrl').value.trim(),
+        memo: document.getElementById('planMemo').value.trim()
+      });
+
+      saveState();
+      closeModal('planModal');
+      renderAll();
+    }
+
+    function deletePlan(id) {
+      state.plans = state.plans.filter(p => p.id !== id);
+      saveState();
+      renderAll();
+    }
+
+    // Wishlist
+    function addWish() {
+      const title = document.getElementById('wishTitle').value.trim();
+      if (!title) return alert('위시리스트 내용을 입력해주세요.');
+      state.wishes.unshift({
+        id: Date.now().toString(),
+        category: document.getElementById('wishCategory').value,
+        title,
+        memo: document.getElementById('wishMemo').value.trim(),
+        done: false
+      });
+      document.getElementById('wishTitle').value = '';
+      document.getElementById('wishMemo').value = '';
+      saveState();
+      renderAll();
+    }
+
+    function toggleWish(id) {
+      const item = state.wishes.find(w => w.id === id);
+      if (item) item.done = !item.done;
+      saveState();
+      renderAll();
+    }
+
+    function deleteWish(id) {
+      state.wishes = state.wishes.filter(w => w.id !== id);
+      saveState();
+      renderAll();
+    }
+
+    // Expenses
+    function addExpense() {
+      const title = document.getElementById('expTitle').value.trim();
+      const amount = Number(document.getElementById('expAmount').value);
+      if (!title || !amount) return alert('내용과 엔화 금액을 입력해주세요.');
+
+      state.expenses.push({
+        id: Date.now().toString(),
+        dayIndex: Number(document.getElementById('expDay').value) || 0,
+        category: document.getElementById('expCat').value,
+        title,
+        amount
+      });
+      document.getElementById('expTitle').value = '';
+      document.getElementById('expAmount').value = '';
+      saveState();
+      renderAll();
+    }
+
+    function deleteExpense(id) {
+      state.expenses = state.expenses.filter(e => e.id !== id);
+      saveState();
+      renderAll();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    function exportData() {
+      const json = JSON.stringify(state);
+      navigator.clipboard?.writeText(json).then(() => {
+        alert('여행 데이터가 클립보드에 복사되었습니다. 메모장에 붙여넣어 보관하세요.');
+      }).catch(() => {
+        prompt('아래 텍스트를 전체 복사하세요:', json);
+      });
+    }
+
+    function importData() {
+      const raw = prompt('백업해둔 JSON 데이터를 붙여넣으세요:');
+      if (!raw) return;
+      try {
+        state = { ...state, ...JSON.parse(raw) };
+        saveState();
+        renderAll();
+        alert('복원이 완료되었습니다.');
+      } catch (e) {
+        alert('올바르지 않은 데이터 형식입니다.');
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    loadState();
+    renderAll();
+  </script>
+</body>
+</html>
